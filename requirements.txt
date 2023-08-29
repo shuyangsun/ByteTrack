@@ -1,6 +1,6 @@
 # TODO: Update with exact module version
 pip==22.0.3
-numpy
+numpy==1.22.4
 torch>=1.7
 opencv_python
 loguru
