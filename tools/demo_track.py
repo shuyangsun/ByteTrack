@@ -311,7 +311,12 @@ def main(exp, args):
 
     if args.trt:
         args.device = "gpu"
-    args.device = torch.device("cuda" if args.device == "gpu" else "cpu")
+    device = "cpu"
+    if args.device == "gpu":
+        device = "cuda"
+    else:
+        device = args.device
+    args.device = torch.device(device)
 
     logger.info("Args: {}".format(args))
 
