@@ -138,7 +138,7 @@ class Predictor(object):
             model_trt = TRTModule()
             model_trt.load_state_dict(torch.load(trt_file))
 
-            x = torch.ones((1, 3, exp.test_size[0], exp.test_size[1]), device=device)
+            x = torch.ones((1, 3, exp.test_size[0], exp.test_size[1]), device=device).half()
             self.model(x)
             self.model = model_trt
         self.rgb_means = (0.485, 0.456, 0.406)
@@ -351,7 +351,7 @@ def main(exp, args):
 
     if args.trt:
         assert not args.fuse, "TensorRT model is not support model fusing!"
-        trt_file = osp.join(output_dir, "model_trt.pth")
+        trt_file = args.ckpt
         assert osp.exists(
             trt_file
         ), "TensorRT model is not found!\n Run python3 tools/trt.py first!"
