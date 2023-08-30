@@ -268,7 +268,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
         if frame_id % 20 == 0:
             logger.info('Processing frame {} ({:.2f} fps)'.format(frame_id, 1. / max(1e-5, timer.average_time)))
         ret_val, frame = cap.read()
-        original_height, original_width = frame.shape
+        original_height, original_width, _ = frame.shape
         resize_width = max(1920, original_width)
         resize_height = int(original_height / original_width * resize_width)
         frame = cv2.resize(frame, (resize_width, resize_height))
