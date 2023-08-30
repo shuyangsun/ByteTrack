@@ -268,10 +268,6 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
         if frame_id % 20 == 0:
             logger.info('Processing frame {} ({:.2f} fps)'.format(frame_id, 1. / max(1e-5, timer.average_time)))
         ret_val, frame = cap.read()
-        original_height, original_width, _ = frame.shape
-        resize_width = max(1920, original_width)
-        resize_height = int(original_height / original_width * resize_width)
-        frame = cv2.resize(frame, (resize_width, resize_height))
         if ret_val:
             outputs, img_info = predictor.inference(frame, timer)
             if outputs[0] is not None:
@@ -282,7 +278,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
                 online_ids = []
                 online_scores = []
                 for t in online_targets:
-                    ltwh = t.ltwh
+                    ltwh = t.tlwh
                     tid = t.track_id
                     vertical = ltwh[2] / ltwh[3] > args.aspect_ratio_thresh
                     if ltwh[2] * ltwh[3] > args.min_box_area and not vertical:
