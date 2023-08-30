@@ -317,7 +317,7 @@ def main(exp, args):
     else:
         device = args.device
     args.device = torch.device(device)
-    if args.device.startswith('cuda') and len(args.device.split(':')) > 1:
+    if device.startswith('cuda') and len(args.device.split(':')) > 1:
         torch.cuda.set_device(int(args.device.split(':')[-1]))
 
     logger.info("Args: {}".format(args))
