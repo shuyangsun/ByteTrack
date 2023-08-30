@@ -262,7 +262,9 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
         if ret_val:
             outputs, img_info = predictor.inference(frame, timer)
             if outputs[0] is not None:
-                online_targets = tracker.update(outputs[0], [img_info['height'], img_info['width']], exp.test_size)
+                height = img_info['height']
+                width = img_info['width']
+                online_targets = tracker.update(outputs[0], [height, width], exp.test_size)
                 online_tlwhs = []
                 online_ids = []
                 online_scores = []
@@ -275,7 +277,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
                         online_ids.append(tid)
                         online_scores.append(t.score)
                         results.append(
-                            f"{frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f},{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f}\n"
+                            f"{frame_id},{tid},{tlwh[0]/height:.5f},{tlwh[1]/width:.5f},{tlwh[2]/width:.5f},{tlwh[3]/height:.5f},{t.score:.2f}\n"
                         )
                 timer.toc()
                 online_im = plot_tracking(
