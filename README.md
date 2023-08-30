@@ -284,14 +284,14 @@ $ cd <ByteTrack_HOME>
 $ PATH_TO_BTRACK_MODEL=/path/to/bytetrack_ablation.pth.tar
 
 # Run model
-$ python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_MODEL} --fps 15 --fp16 --fuse --save_result --path /path/to/file.mp4
+$ python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_MODEL} --fps 15 --fp16 --fuse --save_result --save_media --path /path/to/file.mp4
 
 # Convert model to trt
 $ python tools/trt.py -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_MODEL}
 
 # Run TRT model
 $ PATH_TO_BTRACK_TRT_ENGINE=/path/to/bytetrack_ablation_trt.pth
-$ python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_TRT_ENGINE} --fps 15 --fp16 --trt --save_result --path /path/to/file.mp4
+$ python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_TRT_ENGINE} --fps 15 --fp16 --trt --save_result --save_media --path /path/to/file.mp4
 
 ```
 

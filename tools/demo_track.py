@@ -33,8 +33,15 @@ def make_parser():
     parser.add_argument("--camid", type=int, default=0, help="webcam demo camera id")
     parser.add_argument(
         "--save_result",
+        default=True,
         action="store_true",
-        help="whether to save the inference result of image/video",
+        help="whether to save the inference result of input",
+    )
+    parser.add_argument(
+        "--save_media",
+        default=False,
+        action="store_true",
+        help="whether to save the image/video result of input",
     )
 
     # exp file
@@ -240,17 +247,19 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
     fps = cap.get(cv2.CAP_PROP_FPS) if args.fps is None else int(args.fps)
     # timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
     save_folder = vis_folder
-    os.makedirs(save_folder, exist_ok=True)
-    if args.demo == "video":
-        base_fname_comps = osp.basename(args.path).split(".")
-        base_fname_comps[0] += "_tracked"
-        save_path = osp.join(save_folder, ".".join(base_fname_comps))
-    else:
-        save_path = osp.join(save_folder, "camera.mp4")
-    logger.info(f"video save_path is {save_path}")
-    vid_writer = cv2.VideoWriter(
-        save_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (int(width), int(height))
-    )
+    vid_writer = None
+    if args.save_media:
+        os.makedirs(save_folder, exist_ok=True)
+        if args.demo == "video":
+            base_fname_comps = osp.basename(args.path).split(".")
+            base_fname_comps[0] += "_tracked"
+            save_path = osp.join(save_folder, ".".join(base_fname_comps))
+        else:
+            save_path = osp.join(save_folder, "camera.mp4")
+        logger.info(f"video save_path is {save_path}")
+        vid_writer = cv2.VideoWriter(
+            save_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (int(width), int(height))
+        )
     tracker = BYTETracker(args, frame_rate=30)
     timer = Timer()
     frame_id = 0
@@ -286,7 +295,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
             else:
                 timer.toc()
                 online_im = img_info['raw_img']
-            if args.save_result:
+            if vid_writer is not None:
                 vid_writer.write(online_im)
             ch = cv2.waitKey(1)
             if ch == 27 or ch == ord("q") or ch == ord("Q"):
