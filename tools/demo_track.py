@@ -238,11 +238,13 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)  # float
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
     fps = cap.get(cv2.CAP_PROP_FPS) if args.fps is None else int(args.fps)
-    timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
-    save_folder = osp.join(vis_folder, timestamp)
+    # timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
+    save_folder = vis_folder
     os.makedirs(save_folder, exist_ok=True)
     if args.demo == "video":
-        save_path = osp.join(save_folder, args.path.split("/")[-1])
+        base_fname_comps = osp.basename(args.path).split(".")
+        base_fname_comps[0] += "_tracked"
+        save_path = osp.join(save_folder, ".".join(base_fname_comps))
     else:
         save_path = osp.join(save_folder, "camera.mp4")
     logger.info(f"video save_path is {save_path}")
@@ -273,7 +275,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
                         online_ids.append(tid)
                         online_scores.append(t.score)
                         results.append(
-                            f"{frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f},{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
+                            f"{frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f},{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f}\n"
                         )
                 timer.toc()
                 online_im = plot_tracking(
@@ -292,7 +294,11 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
         frame_id += 1
 
     if args.save_result:
-        res_file = osp.join(vis_folder, f"{timestamp}.txt")
+        base_fname_comps = osp.basename(args.path).split(".")
+        base_fname_comps[0] += "_result"
+        if len(base_fname_comps) > 1:
+            base_fname_comps[-1] = "txt"
+        res_file = osp.join(save_folder, ".".join(base_fname_comps))
         with open(res_file, 'w') as f:
             f.writelines(results)
         logger.info(f"save results to {res_file}")
