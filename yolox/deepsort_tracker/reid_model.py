@@ -108,7 +108,7 @@ class Net(nn.Module):
 class Extractor(object):
     def __init__(self, model_path, use_cuda=True):
         self.net = Net(reid=True)
-        self.device = "cuda:0" if torch.cuda.is_available() and use_cuda else "cpu"
+        self.device = f"cuda:{torch.cuda.current_device()}" if torch.cuda.is_available() and use_cuda else "cpu"
         state_dict = torch.load(model_path, map_location=torch.device(self.device))[
             'net_dict']
         self.net.load_state_dict(state_dict)

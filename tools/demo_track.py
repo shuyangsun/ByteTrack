@@ -1,9 +1,17 @@
+import torch
+import sys
+
+# Very hacky way to set global cuda device index.
+if torch.cuda.is_available():
+    for ele in sys.argv:
+        if ele.startswith("cuda") and len(ele) > 4:
+            torch.cuda.set_device(int(ele.split(":")[-1]))
+
 import argparse
 import os
 import os.path as osp
 import time
 import cv2
-import torch
 
 from loguru import logger
 
@@ -13,7 +21,6 @@ from yolox.utils import fuse_model, get_model_info, postprocess
 from yolox.utils.visualize import plot_tracking
 from yolox.tracker.byte_tracker import BYTETracker
 from yolox.tracking_utils.timer import Timer
-
 
 IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
 
@@ -330,11 +337,10 @@ def main(exp, args):
         args.device = "gpu"
     device = "cpu"
     if args.device == "gpu":
-        device = "cuda" # For trt, this must be `cuda` instead of `cuda:0`
+        device = f"cuda:{torch.cuda.current_device()}" # For trt, this must be `cuda` instead of `cuda:0`
     else:
         device = args.device
     args.device = torch.device(device)
-    torch.cuda.set_device(0)
 
     logger.info("Args: {}".format(args))
 
