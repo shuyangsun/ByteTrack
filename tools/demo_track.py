@@ -313,12 +313,11 @@ def main(exp, args):
         args.device = "gpu"
     device = "cpu"
     if args.device == "gpu":
-        device = "cuda"
+        device = "cuda" # For trt, this must be "cuda" instead of "cuda:0"
     else:
         device = args.device
     args.device = torch.device(device)
-    if device.startswith('cuda') and len(device.split(':')) > 1:
-        torch.cuda.set_device(int(device.split(':')[-1]))
+    torch.cuda.set_device(0)
 
     logger.info("Args: {}".format(args))
 
