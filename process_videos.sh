@@ -4,12 +4,36 @@
 
 # Set the directory path, starting position ratio, and fraction of files to process
 PATH_TO_BTRACK_MODEL="/home/ssun/developer/mlmodel/bytetrack/bytetrack_ablation.pth.tar"
-directory_path=$1
-fraction=$2                 # Change this to your desired fraction
-starting_position_ratio=$3  # Change this to the desired starting position ratio
+input_dir=$1
+output_dir=$2
+fraction=$3 # e.g., 0.25 (4 batches)
+starting_position_ratio=$4 # e.g., 0.75 (last batch)
 
-# Get the list of files in the directory
-file_list=("$directory_path"*".mp4")
+# Create an associative array to keep track of matched files from the second directory
+declare -A matched_files
+
+# Iterate through files in the second directory and populate the associative array
+for second_file_path in "$output_dir"/*; do
+    if [[ -f "$second_file_path" ]]; then
+        second_file=$(basename "$second_file_path")
+        file_name="${second_file%_result.txt}"
+        matched_files["$file_name"]=1
+    fi
+done
+
+file_list=()
+
+# Iterate through files in the first directory and check for matches
+for first_file_path in "$input_dir"/*; do
+    if [[ -f "$first_file_path" ]]; then
+        first_file=$(basename "$first_file_path")
+        file_name="${first_file%.mp4}"
+        
+        if [[ ! ${matched_files["$file_name"]} ]]; then
+            file_list+=("$input_dir/$first_file")
+        fi
+    fi
+done
 
 # Calculate the total number of files and the starting position based on ratios
 total_files=${#file_list[@]}
