@@ -313,7 +313,7 @@ def main(exp, args):
         args.device = "gpu"
     device = "cpu"
     if args.device == "gpu":
-        device = "cuda" # For trt, this must be `cuda` instead of `cuda:1`
+        device = "cuda" # For trt, this must be `cuda` instead of `cuda:0`
     else:
         device = args.device
     args.device = torch.device(device)
