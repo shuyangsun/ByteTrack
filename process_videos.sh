@@ -22,7 +22,7 @@ for second_file_path in "$output_dir"/*; do
     fi
 done
 
-file_list=()
+no_match=()
 
 # Iterate through files in the first directory and check for matches
 for first_file_path in "$input_dir"/*; do
@@ -31,10 +31,14 @@ for first_file_path in "$input_dir"/*; do
         file_name="${first_file%.mp4}"
         
         if [[ ! ${matched_files["$file_name"]} ]]; then
-            file_list+=("$input_dir/$first_file")
+            no_match+=("$input_dir/$first_file")
         fi
     fi
 done
+
+# Sort files
+IFS=$'\n' file_list=($(sort <<<"${no_match[*]}"))
+unset IFS
 
 # Calculate the total number of files and the starting position based on ratios
 total_files=${#file_list[@]}
