@@ -111,11 +111,11 @@ def get_image_list(path):
 def write_results(filename, results):
     save_format = '{frame},{id},{x1},{y1},{w},{h},{s},-1,-1,-1\n'
     with open(filename, 'w') as f:
-        for frame_id, tlwhs, track_ids, scores in results:
-            for tlwh, track_id, score in zip(tlwhs, track_ids, scores):
+        for frame_id, ltwhs, track_ids, scores in results:
+            for ltwh, track_id, score in zip(ltwhs, track_ids, scores):
                 if track_id < 0:
                     continue
-                x1, y1, w, h = tlwh
+                x1, y1, w, h = ltwh
                 line = save_format.format(frame=frame_id, id=track_id, x1=round(x1, 1), y1=round(y1, 1), w=round(w, 1), h=round(h, 1), s=round(score, 2))
                 f.write(line)
     logger.info('save results to {}'.format(filename))
@@ -196,24 +196,24 @@ def image_demo(predictor, vis_folder, current_time, args):
         outputs, img_info = predictor.inference(img_path, timer)
         if outputs[0] is not None:
             online_targets = tracker.update(outputs[0], [img_info['height'], img_info['width']], exp.test_size)
-            online_tlwhs = []
+            online_ltwhs = []
             online_ids = []
             online_scores = []
             for t in online_targets:
-                tlwh = t.tlwh
+                ltwh = t.ltwh
                 tid = t.track_id
-                vertical = tlwh[2] / tlwh[3] > args.aspect_ratio_thresh
-                if tlwh[2] * tlwh[3] > args.min_box_area and not vertical:
-                    online_tlwhs.append(tlwh)
+                vertical = ltwh[2] / ltwh[3] > args.aspect_ratio_thresh
+                if ltwh[2] * ltwh[3] > args.min_box_area and not vertical:
+                    online_ltwhs.append(ltwh)
                     online_ids.append(tid)
                     online_scores.append(t.score)
                     # save results
                     results.append(
-                        f"{frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f},{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
+                        f"{frame_id},{tid},{ltwh[0]:.2f},{ltwh[1]:.2f},{ltwh[2]:.2f},{ltwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
                     )
             timer.toc()
             online_im = plot_tracking(
-                img_info['raw_img'], online_tlwhs, online_ids, frame_id=frame_id, fps=1. / timer.average_time
+                img_info['raw_img'], online_ltwhs, online_ids, frame_id=frame_id, fps=1. / timer.average_time
             )
         else:
             timer.toc()
@@ -274,23 +274,23 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
                 height = img_info['height']
                 width = img_info['width']
                 online_targets = tracker.update(outputs[0], [height, width], exp.test_size)
-                online_tlwhs = []
+                online_ltwhs = []
                 online_ids = []
                 online_scores = []
                 for t in online_targets:
-                    tlwh = t.tlwh
+                    ltwh = t.ltwh
                     tid = t.track_id
-                    vertical = tlwh[2] / tlwh[3] > args.aspect_ratio_thresh
-                    if tlwh[2] * tlwh[3] > args.min_box_area and not vertical:
-                        online_tlwhs.append(tlwh)
+                    vertical = ltwh[2] / ltwh[3] > args.aspect_ratio_thresh
+                    if ltwh[2] * ltwh[3] > args.min_box_area and not vertical:
+                        online_ltwhs.append(ltwh)
                         online_ids.append(tid)
                         online_scores.append(t.score)
                         results.append(
-                            f"{frame_id},{tid},{tlwh[0]/height:.5f},{tlwh[1]/width:.5f},{tlwh[2]/width:.5f},{tlwh[3]/height:.5f},{t.score:.2f}\n"
+                            f"{frame_id},{tid},{ltwh[0]/width:.5f},{ltwh[1]/height:.5f},{ltwh[2]/width:.5f},{ltwh[3]/height:.5f},{t.score:.2f}\n"
                         )
                 timer.toc()
                 online_im = plot_tracking(
-                    img_info['raw_img'], online_tlwhs, online_ids, frame_id=frame_id + 1, fps=1. / timer.average_time
+                    img_info['raw_img'], online_ltwhs, online_ids, frame_id=frame_id + 1, fps=1. / timer.average_time
                 )
             else:
                 timer.toc()
