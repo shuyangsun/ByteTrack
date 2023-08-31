@@ -12,6 +12,7 @@ import os
 import os.path as osp
 import time
 import cv2
+import numpy as np
 
 from loguru import logger
 
@@ -21,6 +22,7 @@ from yolox.utils import fuse_model, get_model_info, postprocess
 from yolox.utils.visualize import plot_tracking
 from yolox.tracker.byte_tracker import BYTETracker
 from yolox.tracking_utils.timer import Timer
+from typing import List, Union
 
 IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
 
@@ -43,6 +45,12 @@ def make_parser():
         default=True,
         action="store_true",
         help="whether to save the inference result of input",
+    )
+    parser.add_argument(
+        "--batch_size",
+        default=1,
+        type=int,
+        help="batch size for object detection, the higher the better, but also uses more memory.",
     )
     parser.add_argument(
         "--save_media",
@@ -158,22 +166,28 @@ class Predictor(object):
         self.rgb_means = (0.485, 0.456, 0.406)
         self.std = (0.229, 0.224, 0.225)
 
-    def inference(self, img, timer):
+    def inference(self, img: Union[np.ndarray, List[str]], timer):
+        if not isinstance(img, np.ndarray) and not isinstance(list):
+            # If it's a single string, put it in a list.
+            img = [img]
+        if isinstance(img, np.ndarray) and not img.ndim == 4:
+            img = np.expand_dims(img, axis=0)
+
         img_info = {"id": 0}
-        if isinstance(img, str):
+        if isinstance(img[0], str):
             img_info["file_name"] = osp.basename(img)
-            img = cv2.imread(img)
+            img = [cv2.imread(img)]
         else:
             img_info["file_name"] = None
 
-        height, width = img.shape[:2]
+        height, width = img.shape[1:3]
         img_info["height"] = height
         img_info["width"] = width
-        img_info["raw_img"] = img
-
+        img_info = [img_info] * len(img)
         img, ratio = preproc(img, self.test_size, self.rgb_means, self.std)
-        img_info["ratio"] = ratio
-        img = torch.from_numpy(img).unsqueeze(0).float().to(self.device)
+        for ele in img_info:
+            ele["ratio"] = ratio
+        img = torch.from_numpy(img).float().to(self.device)
         if self.fp16:
             img = img.half()  # to FP16
 
@@ -271,16 +285,28 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
     timer = Timer()
     frame_id = 0
     results = []
-    while True:
-        if frame_id % 20 == 0:
-            logger.info('Processing frame {} ({:.2f} fps)'.format(frame_id, 1. / max(1e-5, timer.average_time)))
-        ret_val, frame = cap.read()
-        if ret_val:
-            outputs, img_info = predictor.inference(frame, timer)
-            if outputs[0] is not None:
+    should_stop = False
+    while not should_stop:
+        if frame_id % max(args.batch_size, 60) == 0:
+            logger.info('Processing frame {} ({:.2f} fps)'.format(frame_id, args.batch_size / max(1e-5, timer.average_time)))
+        ret_val, batch = cap.read()
+        if not ret_val:
+            should_stop = True
+            break
+        batch = np.expand_dims(batch, axis=0)
+        for _ in range(args.batch_size - 1):
+            ret_val, img = cap.read()
+            if not ret_val:
+                should_stop = True
+                break
+            batch = np.append(batch, np.expand_dims(img, axis=0), axis=0)
+        batch_output, img_infos = predictor.inference(batch, timer)
+        for i, cur_output in enumerate(batch_output):
+            img_info = img_infos[i]
+            if cur_output is not None:
                 height = img_info['height']
                 width = img_info['width']
-                online_targets = tracker.update(outputs[0], [height, width], exp.test_size)
+                online_targets = tracker.update(cur_output, [height, width], exp.test_size)
                 online_ltwhs = []
                 online_ids = []
                 online_scores = []
@@ -297,19 +323,18 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
                         )
                 timer.toc()
                 online_im = plot_tracking(
-                    img_info['raw_img'], online_ltwhs, online_ids, frame_id=frame_id + 1, fps=1. / timer.average_time
+                    batch[i], online_ltwhs, online_ids, frame_id=frame_id + 1 + i, fps= 1 / timer.average_time
                 )
             else:
                 timer.toc()
-                online_im = img_info['raw_img']
+                online_im = batch[i]
             if vid_writer is not None:
                 vid_writer.write(online_im)
             ch = cv2.waitKey(1)
             if ch == 27 or ch == ord("q") or ch == ord("Q"):
+                should_stop = True
                 break
-        else:
-            break
-        frame_id += 1
+        frame_id += args.batch_size
 
     if args.save_result:
         base_fname_comps = osp.basename(args.path).split(".")
