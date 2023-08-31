@@ -284,14 +284,14 @@ $ cd <ByteTrack_HOME>
 $ PATH_TO_BTRACK_MODEL=/path/to/bytetrack_ablation.pth.tar
 
 # Run model
-$ python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_MODEL} --fps 15 --fp16 --fuse --save_result --save_media --path /path/to/file.mp4
+$ python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_MODEL} --fps 15 --fp16 --batch_size 128 --fuse --save_result --save_media --path /path/to/file.mp4
 
 # Convert model to trt
 $ python tools/trt.py -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_MODEL}
 
 # Run TRT model
 $ PATH_TO_BTRACK_TRT_ENGINE=/path/to/bytetrack_ablation_trt.pth
-$ python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_TRT_ENGINE} --fps 15 --fp16 --trt --save_result --save_media --path /path/to/file.mp4
+$ python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_TRT_ENGINE} --fps 15 --fp16 --batch_size 128 --trt --save_result --save_media --path /path/to/file.mp4
 
 # Batch process videos
 $ bash process_videos.sh /input/video/directory /output/result/directory 0.25 0.75 # Process 1/4 of the directory, starting at 3/4 (last batch)

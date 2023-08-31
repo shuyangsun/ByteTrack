@@ -57,5 +57,5 @@ echo "Processing ${num_files_to_process} video files..."
 for ((i = start_position; i < start_position + num_files_to_process && i < total_files; i++)); do
     file_name="${file_list[$i]}"
     echo "Processing ${file_name}..."
-    python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_MODEL} --device ${device} --fps 15 --fp16 --fuse --save_result --path ${file_name}
+    python tools/demo_track.py video -f exps/example/mot/yolox_x_ablation.py -c ${PATH_TO_BTRACK_MODEL} --device ${device} --fps 15 --fp16 --batch_size 128 --fuse --save_result --path ${file_name}
 done
