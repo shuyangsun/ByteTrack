@@ -209,19 +209,19 @@ def image_demo(predictor, vis_folder, current_time, args):
     else:
         files = [args.path]
     files.sort()
-    tracker = BYTETracker(args, frame_rate=args.fps)
+    tracker = BYTETracker(args)
     timer = Timer()
     results = []
 
     for frame_id, img_path in enumerate(files, 1):
         outputs, img_info = predictor.inference(img_path, timer)
         if outputs[0] is not None:
-            online_targets = tracker.update(outputs[0], [img_info['height'], img_info['width']], exp.test_size)
+            online_targets = tracker.update(outputs[0], [img_info['height'], img_info['width']], exp.test_size, should_fuse_scores=not args.mot20)
             online_ltwhs = []
             online_ids = []
             online_scores = []
             for t in online_targets:
-                ltwh = t.ltwh
+                ltwh = t.tlwh
                 tid = t.track_id
                 vertical = ltwh[2] / ltwh[3] > args.aspect_ratio_thresh
                 if ltwh[2] * ltwh[3] > args.min_box_area and not vertical:
@@ -281,7 +281,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
         vid_writer = cv2.VideoWriter(
             save_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (int(width), int(height))
         )
-    tracker = BYTETracker(args, frame_rate=30)
+    tracker = BYTETracker(args)
     timer = Timer()
     frame_id = 0
     results = []
