@@ -115,6 +115,8 @@ if __name__ == "__main__":
                 axis=0
             )
         res.append(frame_res)
+        if frame_idx % 1024 == 0:
+            logging.info(f"processed frame {frame_idx}")
         cur = detections.next()
         frame_idx += 1
     
