@@ -15,7 +15,7 @@ LOG_LEVEL = os.environ.get('PY_LOG_LEVEL', 'WARNING').upper()
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s | %(message)s",
     level=LOG_LEVEL,
-    datefmt="%Y-%m-%d %H:%M:%S.fff")
+    datefmt="%Y-%m-%d %H:%M:%S")
 
 class BBoxDetector(ABC):
 
